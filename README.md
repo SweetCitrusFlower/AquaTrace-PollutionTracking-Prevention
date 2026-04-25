@@ -10,6 +10,29 @@ npm run dev
 # → http://localhost:3000
 ```
 
+## 🤖 Chatbot API (image + DB)
+
+Chatbot-ul din `/chatbot` foloseste acum endpoint-ul server `POST /api/chatbot`.
+
+- Analizeaza intrebarea utilizatorului + poza incarcata (daca exista).
+- Foloseste contextul ultimului raport din camera flow.
+- Incearca sa citeasca date recente din Supabase, iar daca nu exista configurare revine pe mock data local.
+
+Variabile recomandate in `.env`:
+
+```bash
+OPENAI_API_KEY=...
+LLM_MODEL=gpt-4o-mini
+
+# Optional, pentru lookup premium + semnale din DB
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_USERS_TABLE=users
+SUPABASE_SIGNALS_TABLE=pollution_points
+```
+
+Fara `OPENAI_API_KEY`, endpoint-ul raspunde cu un fallback `[MOCK]` util pentru demo.
+
 ## ✨ Ce e nou (v0.2 — Auth + Profile + Settings)
 
 - **Login + Signup** (`/login`, `/signup`) — auth mock cu localStorage. Orice email/parolă merge.
