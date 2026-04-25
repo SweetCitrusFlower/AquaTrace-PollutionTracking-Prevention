@@ -156,10 +156,6 @@ function asksForPremiumFeatures(message: string): boolean {
 }
 
 async function resolvePremiumStatus(body: ChatRequestBody): Promise<boolean> {
-  if (typeof body.isPremium === 'boolean') {
-    return body.isPremium;
-  }
-
   const userId = asString(body.userId);
   if (!userId) return false;
 
@@ -418,8 +414,9 @@ export async function POST(req: Request) {
     const dbResult = await loadSignalsFromDatabase();
     const dbContextText = dbSignalsToText(dbResult.signals);
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.LLM_MODEL ?? 'gpt-4o-mini';
+    const isGemini = !!process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
+    const model = process.env.GEMINI_MODEL || process.env.LLM_MODEL || (isGemini ? 'gemini-1.5-flash' : 'gpt-4o-mini');
 
     if (!apiKey) {
       return NextResponse.json(
@@ -480,7 +477,11 @@ export async function POST(req: Request) {
       messages.push({ role: 'user', content: userMessage });
     }
 
-    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const apiUrl = isGemini 
+      ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+
+    const completionResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
