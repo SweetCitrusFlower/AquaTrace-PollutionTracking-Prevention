@@ -3,13 +3,27 @@ import json
 import requests
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from services.eta_service import calculate_eta as _compute_eta
 
 # Încărcăm variabilele de mediu din .env.local al proiectului principal Next.js
 load_dotenv(dotenv_path="../.env.local")
 
 app = Flask(__name__)
+
+# CORS: allow listed origins (comma-separated in ALLOWED_ORIGINS env var).
+# Add your Vercel production domain to ALLOWED_ORIGINS in .env.local.
+_allowed_origins = [
+    o.strip()
+    for o in os.environ.get(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,https://nume-placeholder.vercel.app",
+    ).split(",")
+    if o.strip()
+]
+CORS(app, origins=_allowed_origins)
 
 # Initialize Supabase Client
 url: str = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
@@ -554,6 +568,66 @@ def analyze_region():
         return jsonify({"error": "Analysis failed"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/predict-eta", methods=["POST"])
+def predict_eta():
+    """
+    Estimates how long a pollution plume takes to travel downstream from its
+    detection point to a monitoring station.
+
+    Request body (JSON):
+      pollution_lat        float  — latitude of the detected pollution patch
+      pollution_lon        float  — longitude of the detected pollution patch
+      station_lat          float  — latitude of the target monitoring station
+      station_lon          float  — longitude of the target monitoring station
+      timestamp_detection  str    — ISO 8601 detection time (e.g. "2024-06-01T14:00:00Z")
+
+    Response (JSON):
+      distance_km           — river-following distance (geodesic if Overpass failed)
+      current_discharge_m3s — live discharge from Open-Meteo flood API
+      estimated_velocity_kmh — surface velocity (V = Q / A, A = 6 400 m²)
+      transit_time_hours    — distance / velocity
+      eta_timestamp         — ISO 8601 expected arrival time
+      used_fallback_distance — true when straight-line geodesic was used
+      upstream_warning      — true when station appears upstream of the plume
+    """
+    body = request.get_json(silent=True) or {}
+
+    required = [
+        "pollution_lat", "pollution_lon",
+        "station_lat", "station_lon",
+        "timestamp_detection",
+    ]
+    missing = [f for f in required if f not in body]
+    if missing:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
+
+    # datetime.fromisoformat() in Python < 3.11 does not parse the "Z" suffix.
+    timestamp_str = str(body["timestamp_detection"]).replace("Z", "+00:00")
+    try:
+        ts = datetime.fromisoformat(timestamp_str)
+    except (ValueError, TypeError):
+        return jsonify({
+            "error": (
+                "Invalid timestamp_detection. "
+                "Expected ISO 8601 format, e.g. '2024-06-01T14:00:00Z'."
+            )
+        }), 400
+
+    try:
+        result = _compute_eta(
+            pollution_lat=float(body["pollution_lat"]),
+            pollution_lon=float(body["pollution_lon"]),
+            station_lat=float(body["station_lat"]),
+            station_lon=float(body["station_lon"]),
+            timestamp_detection=ts,
+        )
+        return jsonify(result), 200
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": f"Invalid coordinate values: {exc}"}), 400
+    except Exception as exc:
+        return jsonify({"error": "Internal server error", "details": str(exc)}), 500
 
 
 if __name__ == "__main__":

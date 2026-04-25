@@ -1,4 +1,13 @@
 Flask==3.0.3
+flask-cors==4.0.1
 supabase==2.4.3
 python-dotenv==1.0.1
 gunicorn==22.0.0
+
+# HTTP client (already used in app.py but was missing from requirements)
+requests==2.32.3
+
+# ETA calculation — river geometry & coordinate projection
+shapely==2.0.6
+pyproj==3.6.1
+geopy==2.4.1
