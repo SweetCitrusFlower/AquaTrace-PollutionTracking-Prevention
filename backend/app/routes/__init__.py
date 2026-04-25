@@ -1,0 +1,1 @@
+# Route blueprints are grouped by domain in this package.

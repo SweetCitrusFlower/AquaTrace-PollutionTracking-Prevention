@@ -1,0 +1,38 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: danubeguard-backend
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: ${FLASK_ENV:-development}
+      PORT: 5000
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:3000}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      COPERNICUS_WEBHOOK_TOKEN: ${COPERNICUS_WEBHOOK_TOKEN:-}
+      REPORT_TOKEN_REWARD: ${REPORT_TOKEN_REWARD:-10}
+      DEFAULT_BBOX: ${DEFAULT_BBOX:-8.0,42.0,30.0,50.0}
+    volumes:
+      - ./backend:/app
+    command: flask --app run.py run --host=0.0.0.0 --port=5000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: danubeguard-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5000}
+      NODE_ENV: development
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev -- --hostname 0.0.0.0 --port 3000

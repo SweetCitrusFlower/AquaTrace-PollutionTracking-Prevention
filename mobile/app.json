@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "DanubeGuard Mobile",
+    "slug": "danubeguard-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "extra": {
+      "apiBaseUrl": "http://localhost:5000"
+    }
+  }
+}
