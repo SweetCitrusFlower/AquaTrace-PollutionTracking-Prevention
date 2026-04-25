@@ -1,10 +1,10 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMapEvents } from 'react-leaflet';
 import { useState } from 'react';
 import { POLLUTION_POINTS, type PollutionPoint } from '@/lib/mockData';
-import { X, Satellite, Radio, User, AlertTriangle } from 'lucide-react';
+import { X, Satellite, Radio, User, AlertTriangle, Loader2 } from 'lucide-react';
 
 const SEVERITY_COLOR: Record<PollutionPoint['severity'], string> = {
   low: '#84C5B1', moderate: '#d8cf86', high: '#f59e0b', critical: '#dc2626',
@@ -17,9 +17,39 @@ const SOURCE_META = {
 
 export default function MapView() {
   const [selected, setSelected] = useState<PollutionPoint | null>(null);
+  const [clickedPoint, setClickedPoint] = useState<PollutionPoint | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleMapClick = async (lat: number, lng: number) => {
+    setIsLoading(true);
+    try {
+      const resp = await fetch('/api/map/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lng }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setClickedPoint(data as PollutionPoint);
+        setSelected(data as PollutionPoint);
+      }
+    } catch (err) {
+      console.error('Failed to analyze location:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="relative h-[calc(100vh-12rem)] md:rounded-3xl overflow-hidden md:shadow-soft">
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="absolute top-4 right-4 z-[500] bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 shadow-soft flex items-center gap-2">
+          <Loader2 className="w-4 h-4 text-dusk animate-spin" />
+          <span className="text-sm font-medium text-dusk">Analyzing...</span>
+        </div>
+      )}
+
       <MapContainer
         center={[44.7, 26.5]}
         zoom={7}
@@ -31,6 +61,7 @@ export default function MapView() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        {/* Pre-defined pollution markers */}
         {POLLUTION_POINTS.map(p => (
           <CircleMarker
             key={p.id}
@@ -47,12 +78,32 @@ export default function MapView() {
             <Tooltip>{p.name}</Tooltip>
           </CircleMarker>
         ))}
+
+        {/* Click handler component */}
+        <MapClickHandler onClick={handleMapClick} />
       </MapContainer>
 
-      {/* Bottom-sheet detail panel — slides up when a marker is clicked */}
-      {selected && <PointDetailSheet point={selected} onClose={() => setSelected(null)} />}
+      {/* Bottom-sheet detail panel */}
+      {selected && (
+        <PointDetailSheet 
+          point={selected} 
+          onClose={() => {
+            setSelected(null);
+            setClickedPoint(null);
+          }} 
+        />
+      )}
     </div>
   );
+}
+
+function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (e) => {
+      onClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
 }
 
 function PointDetailSheet({ point, onClose }: { point: PollutionPoint; onClose: () => void }) {

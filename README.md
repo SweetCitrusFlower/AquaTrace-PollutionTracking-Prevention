@@ -29,6 +29,13 @@ SUPABASE_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...
 SUPABASE_USERS_TABLE=users
 SUPABASE_SIGNALS_TABLE=pollution_points
+
+# Flask backend (for satellite analysis)
+NEXT_PUBLIC_FLASK_API_URL=http://localhost:5000
+
+# Sentinel Hub (optional - enables real satellite data)
+SENTINEL_HUB_CLIENT_ID=...
+SENTINEL_HUB_CLIENT_SECRET=...
 ```
 
 Fara `OPENAI_API_KEY`, endpoint-ul raspunde cu un fallback `[MOCK]` util pentru demo.
