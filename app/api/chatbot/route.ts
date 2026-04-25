@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { POLLUTION_POINTS } from '@/lib/mockData';
 
+
+
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -116,9 +119,9 @@ function parseReportContext(input: unknown): ReportContext | null {
   const activityRaw = input.activity;
   const activity = Array.isArray(activityRaw)
     ? activityRaw
-        .map(asString)
-        .filter((value): value is string => Boolean(value))
-        .slice(0, 8)
+      .map(asString)
+      .filter((value): value is string => Boolean(value))
+      .slice(0, 8)
     : [];
 
   if (!odor && !color && !flow && activity.length === 0) return null;
@@ -477,7 +480,7 @@ export async function POST(req: Request) {
       messages.push({ role: 'user', content: userMessage });
     }
 
-    const apiUrl = isGemini 
+    const apiUrl = isGemini
       ? 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions'
       : 'https://api.openai.com/v1/chat/completions';
 
