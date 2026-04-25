@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply bg-sand text-dusk-dark antialiased;
+    /* Mobile-first touch behaviour: no double-tap zoom, smooth scroll. */
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  /* Safe-area padding for iOS PWA — keeps the bottom nav clear of the home indicator. */
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+}
+
+@layer components {
+  /* Reusable card style — light grass with soft tinted shadow. */
+  .card-eco {
+    @apply bg-grass/40 backdrop-blur-sm rounded-3xl p-5 shadow-soft border border-grass/60;
+  }
+  .btn-primary {
+    @apply bg-dusk text-sand-light px-5 py-3 rounded-2xl font-semibold
+           hover:bg-dusk-dark active:scale-[0.98] transition shadow-soft;
+  }
+  .btn-ghost {
+    @apply bg-white/60 text-dusk-dark px-5 py-3 rounded-2xl font-semibold
+           hover:bg-white transition;
+  }
+}
