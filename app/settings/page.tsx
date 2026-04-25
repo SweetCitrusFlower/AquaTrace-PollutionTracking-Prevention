@@ -10,20 +10,22 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { useAuth } from '@/lib/authStore';
 import PlanToggle from '@/components/PlanToggle';
+import { useT } from '@/lib/useT';
 
 type Section = 'account' | 'preferences' | 'notifications' | 'privacy' | 'plan';
 
-const SECTIONS: { id: Section; label: string; icon: React.ElementType }[] = [
-  { id: 'account',       label: 'Account',       icon: UserIcon },
-  { id: 'preferences',   label: 'Preferences',   icon: Globe },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'privacy',       label: 'Privacy & Data',icon: Shield },
-  { id: 'plan',          label: 'Plan & Billing',icon: Crown },
+const SECTIONS: { id: Section; labelKey: string; icon: React.ElementType }[] = [
+  { id: 'account',       labelKey: 'settings.section.account',       icon: UserIcon },
+  { id: 'preferences',   labelKey: 'settings.section.preferences',   icon: Globe },
+  { id: 'notifications', labelKey: 'settings.section.notifications', icon: Bell },
+  { id: 'privacy',       labelKey: 'settings.section.privacy',       icon: Shield },
+  { id: 'plan',          labelKey: 'settings.section.plan',          icon: Crown },
 ];
 
 export default function SettingsPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const t = useT();
   const [section, setSection] = useState<Section>('account');
 
   if (loading) {
@@ -38,36 +40,53 @@ export default function SettingsPage() {
           <LogIn className="w-10 h-10 text-dusk-dark" />
         </div>
         <h1 className="font-display text-2xl font-bold text-dusk-dark mb-2">Sign in to manage settings</h1>
-        <Link href="/login" className="btn-primary inline-block">Login</Link>
+        <Link href="/login" className="btn-primary inline-block">{t('common.login')}</Link>
       </div>
     );
   }
 
   return (
-    <div className="px-4 md:px-10 py-6 max-w-5xl mx-auto">
+    <div className="px-3 sm:px-4 md:px-10 py-4 md:py-6 max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-dusk-dark">Settings</h1>
-        <p className="text-dusk/70 text-sm">Manage your account, preferences, and subscription.</p>
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">{t('settings.title')}</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t('settings.sub')}</p>
       </div>
 
-      <div className="grid md:grid-cols-[220px,1fr] gap-6">
+      <div className="md:hidden space-y-3">
+        <Card title={t('settings.quickActions')}>
+          <button
+            onClick={() => { logout(); router.push('/'); }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/20"
+          >
+            <LogOut className="w-4 h-4" /> {t('common.logout')}
+          </button>
+        </Card>
+
+        <AccountSection />
+        <PreferencesSection />
+        <NotificationsSection />
+        <PrivacySection />
+        <PlanSection />
+      </div>
+
+      <div className="hidden md:grid md:grid-cols-[220px,1fr] gap-6">
         {/* === SIDEBAR (mobile: horizontal scroll, desktop: vertical) === */}
         <nav className="md:sticky md:top-24 md:self-start">
           <div className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-4 px-4 md:mx-0 md:px-0 pb-2 md:pb-0">
-            {SECTIONS.map(({ id, label, icon: Icon }) => (
+            {SECTIONS.map(({ id, labelKey, icon: Icon }) => (
               <button key={id} onClick={() => setSection(id)}
                 className={clsx(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap transition flex-shrink-0',
+                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition flex-shrink-0',
                   section === id
-                    ? 'bg-dusk text-sand-light shadow-soft'
-                    : 'bg-white/60 text-dusk-dark hover:bg-grass/30 md:bg-transparent'
+                    ? 'bg-dusk text-white shadow-soft'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-grass/20 dark:hover:bg-[#374151] hover:text-gray-900 dark:hover:text-gray-100 md:bg-transparent'
                 )}>
-                <Icon className="w-4 h-4" /> {label}
+                <Icon className="w-4 h-4" /> {t(labelKey)}
               </button>
             ))}
             <button onClick={() => { logout(); router.push('/'); }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-red-700 hover:bg-red-50 transition mt-2 md:mt-4">
-              <LogOut className="w-4 h-4" /> Logout
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition mt-2 md:mt-4">
+              <LogOut className="w-4 h-4" /> {t('common.logout')}
             </button>
           </div>
         </nav>
@@ -88,6 +107,7 @@ export default function SettingsPage() {
 /* ========== ACCOUNT ========== */
 function AccountSection() {
   const { user, updateUser } = useAuth();
+  const t = useT();
   if (!user) return null;
   const [editingEmail, setEditingEmail] = useState(false);
   const [emailDraft, setEmailDraft] = useState(user.email);
@@ -102,11 +122,11 @@ function AccountSection() {
               className="flex-1 bg-white rounded-xl px-3 py-2 text-sm outline-none border border-grass/40 focus:border-water-dark" />
             <button onClick={() => { updateUser({ email: emailDraft }); setEditingEmail(false); }}
               className="bg-water-dark text-white px-3 py-2 rounded-xl text-sm font-bold inline-flex items-center gap-1">
-              <Check className="w-4 h-4" /> Save
+              <Check className="w-4 h-4" /> {t('common.save')}
             </button>
           </div>
         ) : (
-          <Row icon={<Mail className="w-4 h-4" />} label={user.email} action="Change" onClick={() => setEditingEmail(true)} />
+          <Row icon={<Mail className="w-4 h-4" />} label={user.email} action={t('common.change')} onClick={() => setEditingEmail(true)} />
         )}
       </Card>
 
@@ -118,12 +138,12 @@ function AccountSection() {
             <input type="password" placeholder="Confirm new password" className="w-full bg-white rounded-xl px-3 py-2 text-sm outline-none border border-grass/40" />
             <div className="flex gap-2">
               <button onClick={() => { alert('Password updated (mock)'); setPwOpen(false); }}
-                className="bg-dusk text-sand-light px-4 py-2 rounded-xl text-sm font-bold">Update</button>
-              <button onClick={() => setPwOpen(false)} className="bg-white px-4 py-2 rounded-xl text-sm font-bold">Cancel</button>
+                className="bg-dusk text-sand-light px-4 py-2 rounded-xl text-sm font-bold">{t('common.update')}</button>
+              <button onClick={() => setPwOpen(false)} className="bg-white px-4 py-2 rounded-xl text-sm font-bold">{t('common.cancel')}</button>
             </div>
           </div>
         ) : (
-          <Row icon={<KeyRound className="w-4 h-4" />} label="••••••••••" action="Change" onClick={() => setPwOpen(true)} />
+          <Row icon={<KeyRound className="w-4 h-4" />} label="••••••••••" action={t('common.change')} onClick={() => setPwOpen(true)} />
         )}
       </Card>
 
@@ -137,12 +157,13 @@ function AccountSection() {
 /* ========== PREFERENCES ========== */
 function PreferencesSection() {
   const { user, updatePrefs } = useAuth();
+  const t = useT();
   if (!user) return null;
   const p = user.prefs;
 
   return (
     <>
-      <Card title="Theme" subtitle="Choose how DanubeGuard looks.">
+      <Card title={t('common.theme')} subtitle="Choose how DanubeGuard looks.">
         <div className="grid grid-cols-3 gap-2">
           {[
             { v: 'light' as const,  label: 'Light',  icon: <Sun     className="w-4 h-4" /> },
@@ -158,12 +179,15 @@ function PreferencesSection() {
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-dusk/60 mt-2">🧪 Theme switching wired up — full dark mode is coming in the alt build.</p>
+        <p className="text-[11px] text-dusk/50 dark:text-sand/40 mt-2">Changes take effect immediately across the entire app.</p>
       </Card>
 
-      <Card title="Language">
+      <Card title={t('common.language')}>
         <select value={p.language} onChange={e => updatePrefs({ language: e.target.value as typeof p.language })}
-          className="w-full bg-white rounded-xl px-3 py-3 text-sm outline-none border border-grass/40 focus:border-water-dark">
+          className="w-full bg-white dark:bg-[#374151] text-gray-900 dark:text-gray-100
+                     rounded-xl px-3 py-3 text-sm outline-none
+                     border border-grass/40 dark:border-[#4b5563]
+                     focus:border-dusk dark:focus:border-dusk-light transition">
           <option value="ro">🇷🇴 Română</option>
           <option value="en">🇬🇧 English</option>
           <option value="hu">🇭🇺 Magyar</option>
@@ -173,7 +197,7 @@ function PreferencesSection() {
         </select>
       </Card>
 
-      <Card title="Units">
+      <Card title={t('common.units')}>
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => updatePrefs({ units: 'metric' })}
             className={clsx('p-3 rounded-xl border-2 text-sm font-semibold transition',
@@ -299,9 +323,10 @@ function PlanSection() {
 /* ========== Reusable atoms ========== */
 function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="card-eco">
-      <h3 className="font-display font-bold text-dusk-dark">{title}</h3>
-      {subtitle && <p className="text-xs text-dusk/70 mb-3">{subtitle}</p>}
+    <section className="bg-white/70 dark:bg-[#1f2937] backdrop-blur-sm rounded-2xl p-4 md:p-5 shadow-soft
+                        border border-grass/25 dark:border-[#374151]">
+      <h3 className="font-display font-bold text-gray-900 dark:text-gray-100 text-sm tracking-tight">{title}</h3>
+      {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{subtitle}</p>}
       <div className={subtitle ? '' : 'mt-3'}>{children}</div>
     </section>
   );
@@ -310,12 +335,13 @@ function Card({ title, subtitle, children }: { title: string; subtitle?: string;
 function Row({ icon, label, action, onClick }:
   { icon: React.ReactNode; label: string; action: string; onClick: () => void }) {
   return (
-    <div className="flex items-center justify-between bg-white/70 rounded-xl px-4 py-3">
-      <div className="flex items-center gap-2 text-sm text-dusk-dark min-w-0">
-        <span className="text-dusk/70 flex-shrink-0">{icon}</span>
+    <div className="flex items-center justify-between bg-white/60 dark:bg-[#374151] rounded-xl px-3 md:px-4 py-3
+                    border border-grass/20 dark:border-[#4b5563]">
+      <div className="flex items-center gap-2 text-sm text-gray-800 dark:text-gray-200 min-w-0">
+        <span className="text-gray-400 flex-shrink-0">{icon}</span>
         <span className="truncate">{label}</span>
       </div>
-      <button onClick={onClick} className="text-sm font-semibold text-water-dark hover:underline flex-shrink-0 ml-2">
+      <button onClick={onClick} className="text-sm font-semibold text-dusk hover:text-dusk-dark dark:text-dusk-light dark:hover:text-white transition flex-shrink-0 ml-2">
         {action}
       </button>
     </div>
@@ -325,14 +351,15 @@ function Row({ icon, label, action, onClick }:
 function Toggle({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button onClick={() => onChange(!on)}
-      className="w-full flex items-center justify-between bg-white/70 rounded-xl px-4 py-3 hover:bg-white transition">
-      <span className="text-sm text-dusk-dark text-left">{label}</span>
+      className="w-full flex items-center justify-between gap-3 bg-white/60 dark:bg-[#374151] rounded-xl px-3 md:px-4 py-3
+                 hover:bg-white/90 dark:hover:bg-[#4b5563] transition border border-grass/20 dark:border-[#4b5563]">
+      <span className="text-sm text-gray-800 dark:text-gray-200 text-left leading-snug">{label}</span>
       <div className={clsx(
-        'w-11 h-6 rounded-full transition relative flex-shrink-0',
-        on ? 'bg-water-dark' : 'bg-grass/60'
+        'w-11 h-6 rounded-full transition-colors relative flex-shrink-0',
+        on ? 'bg-dusk' : 'bg-gray-300 dark:bg-gray-600'
       )}>
         <div className={clsx(
-          'w-5 h-5 rounded-full bg-white absolute top-0.5 transition shadow-soft',
+          'w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all shadow-soft',
           on ? 'left-[22px]' : 'left-0.5'
         )} />
       </div>

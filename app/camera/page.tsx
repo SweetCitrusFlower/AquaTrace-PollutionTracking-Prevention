@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Camera, RotateCcw, Award, Check, ChevronRight, Crown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Camera, RotateCcw, Award, Check, ChevronRight, Crown, MapPin, Navigation, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import {
   ODOR_OPTIONS, COLOR_OPTIONS, FLOW_OPTIONS, ACTIVITY_OPTIONS,
@@ -9,16 +9,73 @@ import {
 } from '@/lib/mockData';
 import { useAuth } from '@/lib/authStore';
 
-type Stage = 'capture' | 'form' | 'success';
+type Stage = 'capture' | 'location' | 'form' | 'success';
+
+interface LocationData {
+  lat: number;
+  lng: number;
+  accuracy: number;
+  address?: string;
+}
 
 export default function CameraPage() {
   const { user, updateUser } = useAuth();
   const [stage, setStage] = useState<Stage>('capture');
   const [photo, setPhoto] = useState<string | null>(null);
+  const [location, setLocation] = useState<LocationData | null>(null);
+  const [locationConfirmed, setLocationConfirmed] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [report, setReport] = useState<CitizenReport>({
     odor: null, color: null, flow: null, activity: [],
   });
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // --- Geolocation handler ---
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation not supported');
+      return;
+    }
+    
+    setIsLoadingLocation(true);
+    setLocationError(null);
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const locData: LocationData = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+        
+        // Try to get address from coordinates (reverse geocoding)
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${locData.lat}&lon=${locData.lng}`
+          );
+          const data = await response.json();
+          if (data.display_name) {
+            locData.address = data.display_name.split(',').slice(0, 3).join(',');
+          }
+        } catch (e) {
+          // Ignore geocoding errors
+        }
+        
+        setLocation(locData);
+        setIsLoadingLocation(false);
+        setStage('location');
+      },
+      (error) => {
+        setLocationError(error.message);
+        setIsLoadingLocation(false);
+        // Still proceed to location stage with null location
+        setLocation(null);
+        setStage('location');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   // --- Stage handlers ---
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,9 +84,20 @@ export default function CameraPage() {
     const reader = new FileReader();
     reader.onload = ev => {
       setPhoto(ev.target?.result as string);
-      setStage('form');
+      // After photo, request location automatically
+      requestLocation();
     };
     reader.readAsDataURL(file);
+  };
+
+  const confirmLocation = () => {
+    setLocationConfirmed(true);
+    setStage('form');
+  };
+
+  const skipLocation = () => {
+    setLocationConfirmed(false);
+    setStage('form');
   };
 
   const handleSubmit = () => {
@@ -52,6 +120,9 @@ export default function CameraPage() {
 
   const reset = () => {
     setStage('capture'); setPhoto(null);
+    setLocation(null);
+    setLocationConfirmed(false);
+    setLocationError(null);
     setReport({ odor: null, color: null, flow: null, activity: [] });
   };
 
@@ -61,11 +132,111 @@ export default function CameraPage() {
       {stage === 'capture' && (
         <CaptureStage onOpen={() => fileRef.current?.click()} fileRef={fileRef} onChange={handlePhoto} />
       )}
+      {stage === 'location' && (
+        <LocationStage 
+          location={location} 
+          isLoading={isLoadingLocation} 
+          error={locationError}
+          onConfirm={confirmLocation}
+          onSkip={skipLocation}
+          onRetry={requestLocation}
+        />
+      )}
       {stage === 'form' && photo && (
-        <FormStage photo={photo} report={report} setReport={setReport}
-          onSubmit={handleSubmit} onRetake={reset} />
+        <FormStage 
+          photo={photo} 
+          report={report} 
+          setReport={setReport}
+          location={location}
+          onSubmit={handleSubmit} 
+          onRetake={reset} 
+        />
       )}
       {stage === 'success' && <SuccessStage onReset={reset} />}
+    </div>
+  );
+}
+
+/* ========== LOCATION CONFIRMATION STAGE ========== */
+function LocationStage({
+  location,
+  isLoading,
+  error,
+  onConfirm,
+  onSkip,
+  onRetry,
+}: {
+  location: LocationData | null;
+  isLoading: boolean;
+  error: string | null;
+  onConfirm: () => void;
+  onSkip: () => void;
+  onRetry: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="text-center py-10">
+        <div className="w-32 h-32 mx-auto rounded-full bg-water/30 flex items-center justify-center mb-6">
+          <Loader2 className="w-14 h-14 text-water-dark animate-spin" strokeWidth={1.8} />
+        </div>
+        <h1 className="font-display text-2xl font-bold text-dusk-dark mb-2">Getting your location...</h1>
+        <p className="text-dusk/70">Please allow location access to tag your report</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-center py-6">
+      <div className="w-24 h-24 mx-auto rounded-full bg-water/30 flex items-center justify-center mb-6">
+        <MapPin className="w-12 h-12 text-water-dark" strokeWidth={1.8} />
+      </div>
+      <h1 className="font-display text-2xl font-bold text-dusk-dark mb-2">Confirm Location</h1>
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+      
+      {location ? (
+        <div className="card-eco mb-6 text-left">
+          <div className="flex items-start gap-3">
+            <Navigation className="w-5 h-5 text-water-dark mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-dusk-dark mb-1">Your current location</p>
+              <p className="text-sm text-dusk/70 mb-2">
+                {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+              </p>
+              {location.address && (
+                <p className="text-sm text-dusk/60 bg-sand-light rounded-xl p-2">
+                  📍 {location.address}
+                </p>
+              )}
+              <p className="text-xs text-dusk/50 mt-2">
+                Accuracy: ±{Math.round(location.accuracy)}m
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-4">
+          <p className="text-yellow-700 text-sm">⚠️ Could not get location. You can still submit without location.</p>
+        </div>
+      )}
+      
+      <div className="flex flex-col gap-3">
+        <button onClick={onConfirm} className="btn-primary flex items-center justify-center gap-2">
+          <Check className="w-5 h-5" /> Confirm Location
+        </button>
+        <div className="flex gap-3">
+          <button onClick={onSkip} className="btn-ghost flex-1">
+            Skip
+          </button>
+          <button onClick={onRetry} className="btn-ghost flex-1">
+            Retry
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -104,11 +275,12 @@ function CaptureStage({
 
 /* ========== STAGE 2: FORM ========== */
 function FormStage({
-  photo, report, setReport, onSubmit, onRetake,
+  photo, report, setReport, location, onSubmit, onRetake,
 }: {
   photo: string;
   report: CitizenReport;
   setReport: React.Dispatch<React.SetStateAction<CitizenReport>>;
+  location: LocationData | null;
   onSubmit: () => void;
   onRetake: () => void;
 }) {
@@ -135,6 +307,22 @@ function FormStage({
           <RotateCcw className="w-4 h-4" /> Retake
         </button>
       </div>
+
+      {/* Location display */}
+      {location && (
+        <div className="bg-water/10 border border-water/30 rounded-2xl p-4 flex items-center gap-3">
+          <MapPin className="w-5 h-5 text-water-dark" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-dusk-dark">Location tagged</p>
+            <p className="text-xs text-dusk/60">
+              {location.address 
+                ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
+                : `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
+              }
+            </p>
+          </div>
+        </div>
+      )}
 
       <h2 className="font-display text-xl font-bold text-dusk-dark">Tell us what you observed</h2>
 

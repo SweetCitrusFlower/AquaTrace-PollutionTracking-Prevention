@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -7,31 +8,39 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary brand — Dusk Purple. Used for premium, primary CTAs, chatbot header.
+        // Primary — Deep Teal. CTAs, active states, brand.
         dusk: {
-          DEFAULT: '#744577',
-          light:   '#9468a0',
-          dark:    '#5a325e',
-          50:      '#f5f0f6',
-          100:     '#e8dcec',
+          DEFAULT: '#35858E',
+          light:   '#4da3ad',
+          dark:    '#246069',
+          50:      '#edf6f7',
+          100:     '#cce8eb',
         },
-        // Base background — Sand/Beige. Organic, low-fatigue surface.
+        // Background — Cream / off-white. Low-fatigue surface.
         sand: {
-          DEFAULT: '#F0E9B6',
-          light:   '#f8f4d4',
-          dark:    '#d8cf86',
+          DEFAULT: '#E6EEC9',
+          light:   '#f3f7e4',
+          dark:    '#cdd6a8',
         },
-        // Secondary — Light Grass. Cards, NGO sections.
+        // Mid-tone — Sage Green. Cards, borders, secondary surfaces.
         grass: {
-          DEFAULT: '#ACCFA3',
-          light:   '#c9dec0',
-          dark:    '#88b07e',
+          DEFAULT: '#7DA78C',
+          light:   '#9ec0ab',
+          dark:    '#5e8a70',
         },
-        // Tertiary — Teal/Mint. Active nav, water icons, alerts.
+        // Accent — Lime-Khaki. Highlights, tags, data chips.
         water: {
-          DEFAULT: '#84C5B1',
-          light:   '#a8d6c6',
-          dark:    '#5fa691',
+          DEFAULT: '#C2D099',
+          light:   '#d6e2b8',
+          dark:    '#a3b874',
+        },
+        // Dark mode surfaces — neutral charcoal, easy on the eyes.
+        surface: {
+          900: '#111827',   // page bg dark
+          800: '#1f2937',   // sidebar / header dark
+          700: '#374151',   // cards dark
+          600: '#4b5563',   // borders dark
+          muted: '#9ca3af', // muted text dark
         },
       },
       fontFamily: {
@@ -39,8 +48,8 @@ module.exports = {
         display: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
       },
       boxShadow: {
-        soft: '0 6px 24px -8px rgba(116, 69, 119, 0.18)',
-        fab:  '0 10px 30px -6px rgba(116, 69, 119, 0.45)',
+        soft: '0 6px 24px -8px rgba(53, 133, 142, 0.20)',
+        fab:  '0 10px 30px -6px rgba(53, 133, 142, 0.40)',
       },
       borderRadius: {
         '4xl': '2rem',
