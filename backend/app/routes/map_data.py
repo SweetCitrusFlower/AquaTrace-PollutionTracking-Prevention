@@ -7,6 +7,11 @@ from ..utils.validators import ValidationError, parse_float
 map_data_bp = Blueprint("map_data", __name__)
 
 
+def _is_missing_map_rpc(error: Exception) -> bool:
+    error_text = str(error)
+    return "PGRST202" in error_text or "Could not find the function public.get_map_data" in error_text
+
+
 def _parse_bbox(raw_bbox: str | None, default_bbox: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
     if not raw_bbox:
         return default_bbox
@@ -45,8 +50,20 @@ def get_map_data():
 
     try:
         response = get_supabase_client().rpc("get_map_data", rpc_payload).execute()
-    except Exception:
+    except Exception as exc:
         current_app.logger.exception("Failed to fetch map bundle via Supabase RPC")
+        if _is_missing_map_rpc(exc):
+            return (
+                jsonify(
+                    {
+                        "reports": [],
+                        "anomalies": [],
+                        "sensors": [],
+                        "warning": "Supabase function public.get_map_data is missing. Run supabase/schema.sql in Supabase SQL Editor.",
+                    }
+                ),
+                200,
+            )
         return jsonify({"error": "Failed to load map data."}), 502
 
     data = response.data or {"reports": [], "anomalies": [], "sensors": []}

@@ -68,6 +68,7 @@ export default function MapPanel() {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
   const [mapPayload, setMapPayload] = useState<MapPayload>({ reports: [], anomalies: [], sensors: [] });
 
   const stats = useMemo(
@@ -75,9 +76,9 @@ export default function MapPanel() {
       reports: mapPayload.reports.length,
       anomalies: mapPayload.anomalies.length,
       sensors: mapPayload.sensors.length,
-      lastUpdate: new Date().toLocaleTimeString(),
+      lastUpdate: lastUpdatedAt ? new Date(lastUpdatedAt).toLocaleTimeString() : "--:--:--",
     }),
-    [mapPayload],
+    [mapPayload, lastUpdatedAt],
   );
 
   useEffect(() => {
@@ -97,6 +98,7 @@ export default function MapPanel() {
             anomalies: data.anomalies || [],
             sensors: data.sensors || [],
           });
+          setLastUpdatedAt(new Date().toISOString());
           setError(null);
         }
       } catch (requestError) {

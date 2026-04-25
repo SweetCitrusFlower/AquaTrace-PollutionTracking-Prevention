@@ -10,7 +10,7 @@ def _build_client(supabase_url: str, service_role_key: str) -> Client:
 
 
 def get_supabase_client() -> Client:
-    supabase_url = current_app.config.get("SUPABASE_URL", "")
+    supabase_url = current_app.config.get("SUPABASE_URL", "").rstrip("/")
     service_role_key = current_app.config.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
     if not supabase_url or not service_role_key:

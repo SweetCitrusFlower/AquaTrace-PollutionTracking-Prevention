@@ -1,4 +1,9 @@
-import MapPanel from "../components/MapPanel";
+import dynamic from "next/dynamic";
+
+const MapPanel = dynamic(() => import("../components/MapPanel"), {
+  ssr: false,
+  loading: () => <p className="status-banner">Loading map module...</p>,
+});
 
 export default function HomePage() {
   return (
