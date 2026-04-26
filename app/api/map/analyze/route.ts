@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const CDSE_OAUTH_URL =
-  'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token';
+const CDSE_OAUTH_URL = 'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token';
 const SH_STATS_API = 'https://sh.dataspace.copernicus.eu/api/v1/statistics';
 
 interface RegionData {
@@ -46,7 +45,15 @@ async function getCDSEToken(): Promise<string | null> {
   }
 }
 
-async function fetchSatelliteStats(lat: number, lng: number, token: string): Promise<RegionData | null> {
+// NDCI (Mishra & Mishra 2012) + Dogliotti 2015 turbidity via Statistics API.
+// Returns mean values over all water pixels in the 10-day window, or null when
+// no cloud-free Sentinel-2 acquisition covers the bbox.
+async function fetchSatelliteStats(
+  lat: number,
+  lng: number,
+  token: string,
+): Promise<RegionData | null> {
+  // 0.05° ≈ 5 km side at 45 °N — enough to capture open-water pixels
   const d = 0.05;
   const bbox = [lng - d, lat - d, lng + d, lat + d];
 
@@ -54,6 +61,7 @@ async function fetchSatelliteStats(lat: number, lng: number, token: string): Pro
   const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
   const toIso = (dt: Date) => dt.toISOString().replace(/\.\d+Z$/, 'Z');
 
+  // dataMask = 1 only for NDWI > 0 water pixels — excluded pixels don't contribute to mean
   const evalscript = `//VERSION=3
 function setup() {
   return {
@@ -95,7 +103,7 @@ function evaluatePixel(sample) {
   try {
     const resp = await fetch(SH_STATS_API, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
 
@@ -107,6 +115,7 @@ function evaluatePixel(sample) {
     const json = await resp.json();
     const intervals: any[] = json?.data ?? [];
 
+    // Walk intervals newest-first to find the latest with valid water-pixel data
     for (const interval of [...intervals].reverse()) {
       const outputs = interval?.outputs;
       const ndciMean: number | null = outputs?.ndci?.bands?.B0?.stats?.mean ?? null;
@@ -117,6 +126,7 @@ function evaluatePixel(sample) {
         continue;
       }
 
+      // Mishra & Mishra 2012: chl-a (µg/L) from NDCI
       const chl = 14.039 + 86.115 * ndciMean + 194.325 * ndciMean * ndciMean;
       const chlorophyll = Math.max(0, chl);
       const turbidity = Math.max(0, turbMean);
@@ -143,6 +153,7 @@ function evaluatePixel(sample) {
   }
 }
 
+// EU WFD-inspired thresholds (matches backend/app.py _classify_severity)
 function classifySeverity(chl: number, turb: number): string {
   if (chl > 75 || turb > 100) return 'critical';
   if (chl > 25 || turb > 50) return 'high';
@@ -150,6 +161,7 @@ function classifySeverity(chl: number, turb: number): string {
   return 'low';
 }
 
+// Geographic-heuristic fallback for when satellite data is unavailable
 function generateFallbackData(lat: number, lng: number): RegionData {
   const isNearIndustry = lng > 24 && lng < 28 && lat > 43.5 && lat < 44.5;
   const isNearCity = lng > 25.5 && lng < 26.5 && lat > 44 && lat < 44.7;
@@ -187,7 +199,7 @@ function generateFallbackData(lat: number, lng: number): RegionData {
       turbidity_ntu: Math.round(turbidity * 10) / 10,
     },
     reportedAt: new Date().toISOString(),
-    notes: 'Estimated - satellite data unavailable',
+    notes: 'Estimated — satellite data unavailable',
   };
 }
 

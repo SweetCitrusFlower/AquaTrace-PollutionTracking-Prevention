@@ -90,7 +90,7 @@ export default function BottomNav({ variant }: { variant: Variant }) {
                 >
                   <div className="relative">
                     <Icon className="w-7 h-7 text-white" strokeWidth={2.2} />
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-grens rounded-full animate-pulse"></span>
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
                   </div>
                 </Link>
               </li>

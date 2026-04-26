@@ -11,3 +11,7 @@ requests==2.32.3
 shapely==2.0.6
 pyproj==3.6.1
 geopy==2.4.1
+
+# Satellite image processing — Sentinel-2 PNG parsing and spectral index computation
+Pillow==10.4.0
+numpy==1.26.4
