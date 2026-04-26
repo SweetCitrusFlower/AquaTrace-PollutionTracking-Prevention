@@ -8,6 +8,6 @@ gunicorn==22.0.0
 requests==2.32.3
 
 # ETA calculation — river geometry & coordinate projection
-shapely==2.0.6
-pyproj==3.6.1
-geopy==2.4.1
+shapely>=2.0.0
+pyproj>=3.6.0
+geopy>=2.4.0

@@ -7,6 +7,7 @@ from flask_cors import CORS
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from services.eta_service import calculate_eta as _compute_eta
+from services.data_ingestion import run_full_ingestion
 
 # Încărcăm variabilele de mediu din .env.local al proiectului principal Next.js
 load_dotenv(dotenv_path="../.env.local")
@@ -628,6 +629,170 @@ def predict_eta():
         return jsonify({"error": f"Invalid coordinate values: {exc}"}), 400
     except Exception as exc:
         return jsonify({"error": "Internal server error", "details": str(exc)}), 500
+
+
+# ===== NEW ROUTES: Water Stations + Sensor Data + Data Ingestion =====
+
+
+@app.route("/api/water-stations", methods=["GET"])
+def get_water_stations():
+    """List all water treatment/monitoring stations.
+    Query params: ?type=treatment&river=Dunărea&active=true
+    """
+    if not supabase:
+        return jsonify({"error": "Supabase client uninitialized"}), 500
+    try:
+        query = supabase.table("water_stations").select("*")
+
+        station_type = request.args.get("type")
+        if station_type:
+            query = query.eq("station_type", station_type)
+
+        river = request.args.get("river")
+        if river:
+            query = query.eq("river_name", river)
+
+        active_only = request.args.get("active", "true").lower()
+        if active_only == "true":
+            query = query.eq("is_active", True)
+
+        response = query.order("name").execute()
+        return jsonify({"stations": response.data, "count": len(response.data)}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/water-stations/nearest", methods=["GET"])
+def get_nearest_stations():
+    """Find nearest water stations to a given point.
+    Query params: ?lat=44.42&lng=26.10&radius_km=200&limit=5
+    """
+    if not supabase:
+        return jsonify({"error": "Supabase client uninitialized"}), 500
+    try:
+        lat = float(request.args.get("lat", 44.4))
+        lng = float(request.args.get("lng", 26.1))
+        radius = float(request.args.get("radius_km", 200))
+        limit = int(request.args.get("limit", 5))
+
+        response = supabase.rpc(
+            "get_nearest_water_stations",
+            {"in_lng": lng, "in_lat": lat, "in_max_distance_km": radius, "in_limit": limit},
+        ).execute()
+
+        return jsonify({"stations": response.data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/sensor-data/history", methods=["GET"])
+def get_sensor_data_history():
+    """Fetch historical sensor readings with optional filters.
+    Query params: ?source=eea_waterbase&days=7&limit=200
+                  &min_lng=22&min_lat=43&max_lng=30&max_lat=46
+    """
+    if not supabase:
+        return jsonify({"error": "Supabase client uninitialized"}), 500
+    try:
+        source = request.args.get("source")
+        days = int(request.args.get("days", 7))
+        limit = int(request.args.get("limit", 200))
+
+        # Optional bounding box
+        min_lng = request.args.get("min_lng")
+        min_lat = request.args.get("min_lat")
+        max_lng = request.args.get("max_lng")
+        max_lat = request.args.get("max_lat")
+
+        params = {
+            "in_source": source,
+            "in_days": days,
+            "in_min_lng": float(min_lng) if min_lng else None,
+            "in_min_lat": float(min_lat) if min_lat else None,
+            "in_max_lng": float(max_lng) if max_lng else None,
+            "in_max_lat": float(max_lat) if max_lat else None,
+            "in_limit": limit,
+        }
+
+        response = supabase.rpc("get_sensor_data_summary", params).execute()
+
+        return jsonify({
+            "data": response.data,
+            "count": len(response.data) if response.data else 0,
+            "filters": {"source": source, "days": days},
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/data/ingest", methods=["POST"])
+def trigger_data_ingestion():
+    """Manually trigger data ingestion from external sources.
+    Request body (optional): { "sources": ["eea", "copernicus", "emodnet"] }
+    If no sources specified, runs all.
+    """
+    body = request.get_json(silent=True) or {}
+    sources = body.get("sources")
+
+    try:
+        result = run_full_ingestion(sources=sources)
+        status_code = 200 if "error" not in result else 500
+        return jsonify(result), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/data/sources", methods=["GET"])
+def list_data_sources():
+    """List available external data sources and their status."""
+    sources = [
+        {
+            "id": "eea_waterbase",
+            "name": "EEA Waterbase (European Environment Agency)",
+            "type": "water_quality",
+            "status": "active",
+            "data_type": "Chemical parameters (nitrates, phosphates, pH, O₂)",
+            "coverage": "EU-wide, Romanian rivers",
+            "update_frequency": "Quarterly datasets, daily via WISE SOE API",
+        },
+        {
+            "id": "copernicus",
+            "name": "Copernicus Sentinel-2 (ESA/EU)",
+            "type": "satellite",
+            "status": "active" if os.environ.get("SENTINEL_HUB_CLIENT_ID") else "mock",
+            "data_type": "Chlorophyll-a, turbidity, thermal anomalies",
+            "coverage": "Global (focused on Danube corridor)",
+            "update_frequency": "Every 5 days per region",
+        },
+        {
+            "id": "emodnet",
+            "name": "EMODnet Physics",
+            "type": "oceanographic",
+            "status": "active",
+            "data_type": "Temperature, salinity, currents",
+            "coverage": "Black Sea / Danube Delta interface",
+            "update_frequency": "Near real-time",
+        },
+        {
+            "id": "grdc",
+            "name": "GRDC (Global Runoff Data Centre)",
+            "type": "hydrology",
+            "status": "mock",
+            "data_type": "River discharge, water level, flow velocity",
+            "coverage": "Major Danube gauging stations",
+            "update_frequency": "Daily (when API access approved)",
+        },
+        {
+            "id": "ngo_sensors",
+            "name": "NGO Field Sensors (MaiMultVerde, Delta Watch, etc.)",
+            "type": "citizen_science",
+            "status": "mock",
+            "data_type": "Full water quality suite",
+            "coverage": "Danube + Romanian tributaries",
+            "update_frequency": "Hourly (when integrated)",
+        },
+    ]
+    return jsonify({"sources": sources}), 200
 
 
 if __name__ == "__main__":
