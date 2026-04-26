@@ -131,10 +131,16 @@ function PointDetailSheet({ point, onClose }: { point: PollutionPoint; onClose: 
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Metric label="Chlorophyll"   value={`${point.metrics.chlorophyll_mg_m3} mg/m³`} />
-        <Metric label="Nitrates"      value={`${point.metrics.nitrates_mg_l} mg/L`} />
-        <Metric label="Phosphates"    value={`${point.metrics.phosphates_mg_l} mg/L`} />
-        <Metric label="Heat Anomaly"  value={`+${point.metrics.heatAnomaly_C} °C`} />
+        <Metric label="Chlorophyll" value={`${point.metrics.chlorophyll_mg_m3} mg/m³`} />
+        {point.metrics.turbidity_ntu != null && (
+          <Metric label="Turbidity" value={`${point.metrics.turbidity_ntu} NTU`} />
+        )}
+        {point.metrics.nitrates_mg_l != null && (
+          <Metric label="Nitrates" value={`${point.metrics.nitrates_mg_l} mg/L`} />
+        )}
+        {point.metrics.phosphates_mg_l != null && (
+          <Metric label="Phosphates" value={`${point.metrics.phosphates_mg_l} mg/L`} />
+        )}
       </div>
 
       {point.notes && (

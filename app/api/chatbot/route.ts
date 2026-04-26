@@ -69,9 +69,9 @@ type DbSignal = {
   name: string;
   severity: string;
   chlorophyll: number | null;
+  turbidity: number | null;
   nitrates: number | null;
   phosphates: number | null;
-  heatAnomaly: number | null;
   reportedAt: string | null;
   notes: string | null;
 };
@@ -206,9 +206,9 @@ function localSignals(): DbSignal[] {
       name: point.name,
       severity: point.severity,
       chlorophyll: point.metrics.chlorophyll_mg_m3,
-      nitrates: point.metrics.nitrates_mg_l,
-      phosphates: point.metrics.phosphates_mg_l,
-      heatAnomaly: point.metrics.heatAnomaly_C,
+      turbidity: point.metrics.turbidity_ntu ?? null,
+      nitrates: point.metrics.nitrates_mg_l ?? null,
+      phosphates: point.metrics.phosphates_mg_l ?? null,
       reportedAt: point.reportedAt,
       notes: point.notes ?? null,
     }));
@@ -230,6 +230,11 @@ function mapDbRow(row: Record<string, unknown>): DbSignal {
       asNumber(row.chlorophyll) ??
       asNumber(metrics?.chlorophyll_mg_m3) ??
       null,
+    turbidity:
+      asNumber(row.turbidity_ntu) ??
+      asNumber(row.turbidity) ??
+      asNumber(metrics?.turbidity_ntu) ??
+      null,
     nitrates:
       asNumber(row.nitrates_mg_l) ??
       asNumber(row.nitrates) ??
@@ -239,12 +244,6 @@ function mapDbRow(row: Record<string, unknown>): DbSignal {
       asNumber(row.phosphates_mg_l) ??
       asNumber(row.phosphates) ??
       asNumber(metrics?.phosphates_mg_l) ??
-      null,
-    heatAnomaly:
-      asNumber(row.heatanomaly_c) ??
-      asNumber(row.heat_anomaly_c) ??
-      asNumber(row.heatAnomaly_C) ??
-      asNumber(metrics?.heatAnomaly_C) ??
       null,
     reportedAt: asString(row.reported_at) ?? asString(row.reportedAt) ?? null,
     notes: asString(row.notes),
@@ -302,9 +301,9 @@ function dbSignalsToText(signals: DbSignal[]): string {
     .map((signal, index) => {
       const metrics = [
         signal.chlorophyll !== null ? `chlorophyll=${signal.chlorophyll} mg/m3` : null,
+        signal.turbidity !== null ? `turbidity=${signal.turbidity} NTU` : null,
         signal.nitrates !== null ? `nitrates=${signal.nitrates} mg/L` : null,
         signal.phosphates !== null ? `phosphates=${signal.phosphates} mg/L` : null,
-        signal.heatAnomaly !== null ? `heat_anomaly=${signal.heatAnomaly} C` : null,
       ]
         .filter((value): value is string => Boolean(value))
         .join(', ');

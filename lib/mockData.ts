@@ -11,17 +11,62 @@ export interface PollutionPoint {
   source: PollutionSource;
   severity: Severity;
   metrics: {
-    chlorophyll_mg_m3: number; // Sentinel-3 OLCI proxy
-    nitrates_mg_l: number;
-    phosphates_mg_l: number;
-    heatAnomaly_C: number; // Sentinel-3 SLSTR thermal
+    chlorophyll_mg_m3: number;
+    turbidity_ntu?: number;    // optical sensor or satellite
+    nitrates_mg_l?: number;    // chemical sensor (NGO / lab)
+    phosphates_mg_l?: number;  // chemical sensor (NGO / lab)
   };
   reportedAt: string; // ISO
   notes?: string;
 }
 
-// Real-ish points along the Danube — Bucharest area, Iron Gates, Delta, etc.
-export const POLLUTION_POINTS: PollutionPoint[] = [];
+export const POLLUTION_POINTS: PollutionPoint[] = [
+  {
+    id: "p-002",
+    coords: [44.6228, 22.675],
+    name: "Iron Gates — Industrial Runoff",
+    source: "ngo-sensor",
+    severity: "high",
+    metrics: {
+      chlorophyll_mg_m3: 38.4,
+      turbidity_ntu: 62.0,
+      nitrates_mg_l: 9.2,
+      phosphates_mg_l: 1.8,
+    },
+    reportedAt: "2026-04-22T08:00:00Z",
+    notes: "Iron Gates Coalition field sensor — elevated heavy-metal runoff detected",
+  },
+  {
+    id: "p-003",
+    coords: [45.2157, 28.7969],
+    name: "Tulcea Delta — Algal Bloom",
+    source: "ngo-sensor",
+    severity: "critical",
+    metrics: {
+      chlorophyll_mg_m3: 82.1,
+      turbidity_ntu: 48.0,
+      nitrates_mg_l: 12.5,
+      phosphates_mg_l: 2.4,
+    },
+    reportedAt: "2026-04-23T06:30:00Z",
+    notes: "Danube Delta Watch sensor — cyanobacteria bloom confirmed by field sample",
+  },
+  {
+    id: "p-004",
+    coords: [45.2692, 27.9578],
+    name: "Brăila — Agricultural Outflow",
+    source: "ngo-sensor",
+    severity: "moderate",
+    metrics: {
+      chlorophyll_mg_m3: 28.5,
+      turbidity_ntu: 42.0,
+      nitrates_mg_l: 7.1,
+      phosphates_mg_l: 1.1,
+    },
+    reportedAt: "2026-04-24T10:15:00Z",
+    notes: "Salvați Dunărea sensor — elevated nutrient load from upstream irrigation canals",
+  },
+];
 
 // Danube regions for satellite analysis
 export interface DanubeRegion {
@@ -67,6 +112,18 @@ export const DANUBE_REGIONS: DanubeRegion[] = [
     name: "Portile de Fier",
     bbox: [21.8, 44.4, 22.2, 44.7],
     center: [44.5447, 21.9667],
+  },
+  {
+    id: "braila",
+    name: "Brăila / Insula Mare",
+    bbox: [27.7, 44.9, 28.3, 45.6],
+    center: [45.2692, 27.9578],
+  },
+  {
+    id: "calarasi",
+    name: "Călărași Industrial Outflow",
+    bbox: [27.1, 43.9, 27.7, 44.5],
+    center: [44.2, 27.33],
   },
 ];
 
