@@ -5,9 +5,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogIn, User as UserIcon, Settings, LogOut, Crown } from 'lucide-react';
 import { useAuth, AVATAR_PRESETS } from '@/lib/authStore';
+import { useT } from '@/lib/useT';
 
 export default function UserMenu() {
   const { user, loading, logout } = useAuth();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -33,7 +35,7 @@ export default function UserMenu() {
         className="flex items-center gap-2 bg-dusk text-sand-light px-4 py-2 rounded-2xl text-sm font-bold
                    hover:bg-dusk-dark active:scale-95 transition shadow-soft"
       >
-        <LogIn className="w-4 h-4" /> Login
+        <LogIn className="w-4 h-4" /> {t('common.login')}
       </Link>
     );
   }
@@ -77,19 +79,19 @@ export default function UserMenu() {
             onClick={() => { setOpen(false); router.push('/profile'); }}
             className="w-full flex items-center gap-3 px-4 py-3 text-sm text-dusk-dark hover:bg-grass/30 transition text-left"
           >
-            <UserIcon className="w-4 h-4" /> My Profile
+            <UserIcon className="w-4 h-4" /> {t('common.myProfile')}
           </button>
           <button
             onClick={() => { setOpen(false); router.push('/settings'); }}
             className="w-full flex items-center gap-3 px-4 py-3 text-sm text-dusk-dark hover:bg-grass/30 transition text-left"
           >
-            <Settings className="w-4 h-4" /> Settings
+            <Settings className="w-4 h-4" /> {t('settings.title')}
           </button>
           <button
             onClick={() => { setOpen(false); logout(); router.push('/'); }}
             className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-700 hover:bg-red-50 transition text-left border-t border-grass/40"
           >
-            <LogOut className="w-4 h-4" /> Logout
+            <LogOut className="w-4 h-4" /> {t('common.logout')}
           </button>
         </div>
       )}
