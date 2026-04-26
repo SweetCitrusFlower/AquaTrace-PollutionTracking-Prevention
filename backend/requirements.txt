@@ -1,0 +1,16 @@
+Flask==3.0.3
+flask-cors==4.0.1
+supabase==2.4.3
+python-dotenv==1.0.1
+gunicorn==22.0.0
+
+# HTTP client (already used in app.py but was missing from requirements)
+requests==2.32.3
+
+# ETA calculation — river geometry & coordinate projection
+shapely
+pyproj
+geopy
+# Satellite image processing — Sentinel-2 PNG parsing and spectral index computation
+Pillow
+numpy

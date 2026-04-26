@@ -1,0 +1,48 @@
+{
+  "name": "DanubeGuard OS",
+  "short_name": "DanubeGuard",
+  "description": "Citizen science + Copernicus satellite data for a cleaner Danube.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#E6EEC9",
+  "theme_color": "#35858E",
+  "categories": ["productivity", "utilities", "education"],
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Report pollution",
+      "short_name": "Report",
+      "description": "Take a photo and submit a citizen-science report",
+      "url": "/camera",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live map",
+      "short_name": "Map",
+      "description": "View live pollution map",
+      "url": "/map",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
+}
