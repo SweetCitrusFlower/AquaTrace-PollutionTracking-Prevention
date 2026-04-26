@@ -7,13 +7,13 @@ import PWARegister from '@/components/PWARegister';
 import { AuthProvider } from '@/lib/authStore';
 
 export const metadata: Metadata = {
-  title: 'DanubeGuard OS',
+  title: 'AquaTrace OS',
   description: 'Citizen science + Copernicus satellite data for a cleaner Danube.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'DanubeGuard',
+    title: 'AquaTrace',
   },
   icons: {
     icon: '/icon-192.svg',

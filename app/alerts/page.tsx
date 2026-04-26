@@ -7,12 +7,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, Loader2, MapPin, Clock, CheckCircle2, Eye, ExternalLink } from 'lucide-react';
 import { fetchAnomalies, type Anomaly, type AnomalySeverity } from '@/lib/anomaliesApi';
+import { triggerDemoAlert } from '@/lib/demoNotification';
 
 export default function AlertsPage() {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMock, setIsMock] = useState(false);
   const [filter, setFilter] = useState<'all' | 'open' | AnomalySeverity>('all');
+  const [demoBusy, setDemoBusy] = useState(false);
+  const [demoMsg, setDemoMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +45,22 @@ export default function AlertsPage() {
     moderate: anomalies.filter(a => a.severity === 'moderate').length,
   };
 
+  const handleDemoAlert = async () => {
+    if (demoBusy) return;
+    setDemoBusy(true);
+    setDemoMsg(null);
+    try {
+      const via = await triggerDemoAlert();
+      setDemoMsg(via === 'service-worker'
+        ? 'Demo alert sent to this phone (PWA notification).'
+        : 'Demo alert sent in browser notification mode.');
+    } catch (err) {
+      setDemoMsg(err instanceof Error ? err.message : 'Failed to send demo alert.');
+    } finally {
+      setDemoBusy(false);
+    }
+  };
+
   return (
     <div className="px-4 md:px-10 py-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -61,6 +80,22 @@ export default function AlertsPage() {
           Live water-quality alerts — combining Sentinel-2 satellite anomalies, sensor threshold breaches,
           and citizen report clusters. Sorted by detection time.
         </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleDemoAlert}
+            disabled={demoBusy}
+            className="px-3 py-2 rounded-xl bg-dusk text-white text-xs font-bold tracking-wide
+                       shadow-soft hover:bg-dusk-dark transition-all duration-300
+                       hover:shadow-lg active:scale-[0.98] disabled:opacity-60"
+          >
+            {demoBusy ? 'Sending demo alert…' : 'Send demo alert to this phone'}
+          </button>
+          {demoMsg && (
+            <p className="text-xs text-gray-500 dark:text-gray-300 animate-[fadeIn_0.25s_ease-out]">
+              {demoMsg}
+            </p>
+          )}
+        </div>
       </header>
 
       {/* Filter chips */}
@@ -111,7 +146,8 @@ function FilterChip({ active, onClick, label, count, color }: {
 
   return (
     <button onClick={onClick}
-      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap
+      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 whitespace-nowrap
+        hover:-translate-y-[1px]
         ${active ? c.activeBg : `${c.bg} ${c.text} hover:opacity-80`}`}>
       {label} <span className="opacity-70">· {count}</span>
     </button>
@@ -127,7 +163,7 @@ function AnomalyCard({ a }: { a: Anomaly }) {
   return (
     <article className={`rounded-2xl p-4 border-l-4 ${sevMeta.borderL}
                          bg-white dark:bg-[#1f2937] border-r border-y border-grass/20 dark:border-[#374151]
-                         shadow-soft hover:shadow-md transition`}>
+                         shadow-soft hover:shadow-md transition-all duration-300 hover:-translate-y-[1px]`}>
       <div className="flex items-start gap-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${sevMeta.iconBg}`}>
           <AlertTriangle className={`w-5 h-5 ${sevMeta.iconColor}`} />

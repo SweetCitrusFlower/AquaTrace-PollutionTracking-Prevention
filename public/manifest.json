@@ -1,6 +1,6 @@
 {
-  "name": "DanubeGuard OS",
-  "short_name": "DanubeGuard",
+  "name": "AquaTrace OS",
+  "short_name": "AquaTrace",
   "description": "Citizen science + Copernicus satellite data for a cleaner Danube.",
   "start_url": "/",
   "scope": "/",

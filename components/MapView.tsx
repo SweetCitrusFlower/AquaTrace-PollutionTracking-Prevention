@@ -723,33 +723,45 @@ export default function MapView() {
         className="absolute top-3 right-3 z-[500] flex items-center gap-2
                    bg-white/95 backdrop-blur-sm px-3 py-2 rounded-xl shadow-soft
                    text-sm font-semibold text-gray-700 border border-grass/30
-                   hover:bg-white transition"
+                   hover:bg-white transition-all duration-300 hover:shadow-lg
+                   active:scale-[0.98]"
       >
         <Layers className="w-4 h-4 text-dusk" />
         <span className="hidden sm:inline">{activeSource.name}</span>
         <span className="w-2 h-2 rounded-full ml-1" style={{ background: activeSource.color }} />
       </button>
 
-      {/* Mobile panel — slides up from bottom over the map (unchanged behaviour) */}
+      {/* Mobile panel — closes by tapping backdrop */}
       {panelOpen && (
         <div
-          className="absolute md:hidden bottom-20 inset-x-0 z-[501]
-                        bg-white/98 backdrop-blur-md shadow-2xl
-                        border-t border-grass/20
-                        rounded-t-3xl
-                        animate-[slideUp_0.2s_ease-out] max-h-[70vh]
-                        flex flex-col overflow-hidden"
-          // Stop wheel events from reaching Leaflet (which would zoom the map)
-          onWheel={(e) => e.stopPropagation()}
-          // Same for touch on mobile so panel scroll doesn't pan the map
-          onTouchMove={(e) => e.stopPropagation()}
-          // Don't let drag-select on the panel become a map drag
-          onMouseDown={(e) => e.stopPropagation()}
+          className="absolute md:hidden inset-0 z-[501] flex items-end animate-[fadeIn_0.2s_ease-out]"
+          onClick={() => setPanelOpen(false)}
         >
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+          <div
+            className="relative bottom-20 inset-x-0 w-full bg-white/98 backdrop-blur-md shadow-2xl
+                        border-t border-grass/20 rounded-t-3xl animate-[slideUp_0.24s_ease-out]
+                        max-h-[70vh] flex flex-col overflow-hidden"
+            // Stop wheel events from reaching Leaflet (which would zoom the map)
+            onWheel={(e) => e.stopPropagation()}
+            // Same for touch on mobile so panel scroll doesn't pan the map
+            onTouchMove={(e) => e.stopPropagation()}
+            // Don't let drag-select on the panel become a map drag
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+          <button
+            onClick={() => setPanelOpen(false)}
+            className="md:hidden absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center border border-grass/20 hover:scale-105 active:scale-95 transition-transform"
+            aria-label="Close panel"
+          >
+            <X className="w-5 h-5 text-gray-700" />
+          </button>
           {/* Panel header — fixed at top, never scrolls */}
           <div className="flex-shrink-0 bg-white/95 backdrop-blur-sm px-4 py-3
                           border-b border-grass/20 flex items-center justify-between">
             <div>
+              <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-gray-200" />
               <h2 className="font-display font-bold text-gray-900 text-sm">Map Layers</h2>
               <p className="text-[11px] text-gray-400 mt-0.5">Choose source, display, or analyze a zone</p>
             </div>
@@ -984,10 +996,10 @@ export default function MapView() {
                 <button
                   key={src.id}
                   onClick={() => { setActiveSource(src); setPanelOpen(false); }}
-                  className={`w-full text-left p-3.5 rounded-xl border-2 transition-all group
+                  className={`w-full text-left p-3.5 rounded-xl border-2 transition-all duration-300 group
                               ${isActive
-                                ? 'border-dusk bg-dusk/5 shadow-soft'
-                                : 'border-grass/20 hover:border-dusk/40 hover:shadow-soft'}`}
+                                ? 'border-dusk bg-dusk/5 shadow-soft animate-[softPop_0.2s_ease-out]'
+                                : 'border-grass/20 hover:border-dusk/40 hover:shadow-soft hover:-translate-y-[1px]'}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
@@ -1051,6 +1063,7 @@ export default function MapView() {
               ))}
             </div>
           </div>
+        </div>
         </div>
       )}
 
@@ -1160,7 +1173,7 @@ export default function MapView() {
         <div
           className="hidden md:flex flex-col w-80 flex-shrink-0
                       bg-white/98 border-l border-grass/20 shadow-2xl
-                      animate-[slideInRight_0.2s_ease-out] overflow-hidden"
+                      animate-[slideInRight_0.22s_ease-out] overflow-hidden"
           onWheel={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
@@ -1365,10 +1378,10 @@ export default function MapView() {
                   <button
                     key={src.id}
                     onClick={() => { setActiveSource(src); }}
-                    className={`w-full text-left p-3.5 rounded-xl border-2 transition-all group
+                    className={`w-full text-left p-3.5 rounded-xl border-2 transition-all duration-300 group
                                 ${isActive
-                                  ? 'border-dusk bg-dusk/5 shadow-soft'
-                                  : 'border-grass/20 hover:border-dusk/40 hover:shadow-soft'}`}
+                                  ? 'border-dusk bg-dusk/5 shadow-soft animate-[softPop_0.2s_ease-out]'
+                                  : 'border-grass/20 hover:border-dusk/40 hover:shadow-soft hover:-translate-y-[1px]'}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5">

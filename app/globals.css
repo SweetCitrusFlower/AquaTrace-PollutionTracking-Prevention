@@ -141,3 +141,18 @@
   to   { transform: translateY(0); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes softPop {
+  from { transform: scale(0.98); opacity: 0.88; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fabBreath {
+  0%, 100% { transform: translateY(0); box-shadow: 0 8px 20px rgba(45,65,70,0.35); }
+  50%      { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(45,65,70,0.45); }
+}
+

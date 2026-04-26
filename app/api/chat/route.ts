@@ -23,7 +23,7 @@ function mockReply(message: string, isPremium: boolean): string {
   if (premiumKeywords.some(kw => m.includes(kw)) && !isPremium) {
     return [
       "🔒 Great question! Long-term predictions and historical trend analysis",
-      "are available with **DanubeGuard Premium**.",
+      "are available with **AquaTrace Premium**.",
       '',
       "💡 Tip: You can earn premium tokens for free by contributing",
       "citizen-science photos at designated water monitoring points.",
@@ -100,10 +100,30 @@ function mockReply(message: string, isPremium: boolean): string {
     ].join('\n');
   }
 
+  // ── Tulcea water quality (DEMO HARDCODED) ───────────────────────────
+  if (m.includes('tulcea')) {
+    return [
+      "📍 **Tulcea Region Water Quality Report**",
+      '',
+      "Current satellite readings (Sentinel-2 pass 14:32 UTC):",
+      "• **Chlorophyll-a**: 12.4 mg/m³ (healthy range)",
+      "• **Turbidity**: 3.2 NTU (clear water)",
+      "• **Dissolved Oxygen**: 8.7 mg/L (excellent)",
+      "• **Water Temp**: 16.8°C",
+      '',
+      "✅ Water is **safe for fishing** today. NGO sensors near Ceatalchioi",
+      "report normal flow and no odor anomalies.",
+      '',
+      "⚠️ **Note**: Upriver near Călărași, chlorophyll levels are elevated",
+      "(47.2 mg/m³) due to agricultural discharge. This affects water",
+      "downstream in 3-4 days. Best to fish in the upper Danube now.",
+    ].join('\n');
+  }
+
   // ── Greeting / capabilities ──────────────────────────────────────────
   if (['hello', 'hi ', 'hey', 'salut', 'help', 'what can'].some(kw => m.includes(kw)) || m.length < 6) {
     return [
-      "Hi! I'm **DanubeGuard AI**, your water quality assistant. I can help with:",
+      "Hi! I'm **AquaTrace AI**, your water quality assistant. I can help with:",
       '',
       "• Current water quality status in your zone",
       "• 48-hour pollution forecasts",
@@ -143,8 +163,8 @@ export async function POST(req: NextRequest) {
   // Real implementation would check Supabase here.
   const isPremium = body.is_premium === true || (body.user_id?.startsWith('premium_') ?? false);
 
-  // Simulate latency for realistic UX (200-600ms)
-  await new Promise(r => setTimeout(r, 250 + Math.random() * 350));
+  // Simulate latency for realistic UX (longer for demo visibility)
+  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
 
   return NextResponse.json({
     reply: mockReply(message, isPremium),

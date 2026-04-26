@@ -248,7 +248,7 @@ export const chatbotContext: { lastReport: CitizenReport | null } = {
 
 export function buildChatbotGreeting(): string {
   const r = chatbotContext.lastReport;
-  if (!r) return "Hi! I'm DanubeGuard AI. Ask me anything about water quality, your area, or how to interpret satellite data.";
+  if (!r) return "Hi! I'm AquaTrace AI. Ask me anything about water quality, your area, or how to interpret satellite data.";
 
   if (r.odor === 'Rotten Eggs / Sulfur') {
     return "I noticed you reported a sulfur smell. This usually indicates high nitrite levels or organic decomposition (anaerobic conditions). How can I help you analyze this area further?";

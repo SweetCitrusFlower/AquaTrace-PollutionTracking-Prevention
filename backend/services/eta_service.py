@@ -1,5 +1,5 @@
 """
-eta_service.py — Pollution plume ETA calculator for DanubeGuard OS.
+eta_service.py — Pollution plume ETA calculator for AquaTrace OS.
 
 Estimates how long it takes for a detected pollution patch to travel
 downstream along the Danube and reach a monitoring station.
@@ -101,7 +101,7 @@ def _fetch_river_geometry(
         OVERPASS_URL,
         data={"data": query},
         headers={
-            "User-Agent": "DanubeGuardOS/1.0 (hackathon; contact: mateidragomir74@gmail.com)",
+            "User-Agent": "AquaTraceOS/1.0 (hackathon; contact: mateidragomir74@gmail.com)",
             "Accept": "*/*",
         },
         timeout=OVERPASS_TIMEOUT_S,

@@ -163,7 +163,7 @@ function PreferencesSection() {
 
   return (
     <>
-      <Card title={t('common.theme')} subtitle="Choose how DanubeGuard looks.">
+      <Card title={t('common.theme')} subtitle="Choose how AquaTrace looks.">
         <div className="grid grid-cols-3 gap-2">
           {[
             { v: 'light' as const,  label: 'Light',  icon: <Sun     className="w-4 h-4" /> },
@@ -254,7 +254,7 @@ function PrivacySection() {
     const blob = new Blob([JSON.stringify(user, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'danubeguard-data.json'; a.click();
+    a.href = url; a.download = 'aquatrace-data.json'; a.click();
     URL.revokeObjectURL(url);
   };
 

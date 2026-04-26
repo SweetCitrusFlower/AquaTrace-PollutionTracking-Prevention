@@ -1,8 +1,8 @@
 // public/sw.js
-// Minimal service worker for DanubeGuard OS PWA.
+// Minimal service worker for AquaTrace OS PWA.
 // Strategy: network-first with cache fallback for offline shell.
 
-const CACHE_NAME = 'danubeguard-v1';
+const CACHE_NAME = 'aquatrace-v1';
 const SHELL_URLS = [
   '/',
   '/manifest.json',
@@ -45,5 +45,23 @@ self.addEventListener('fetch', (event) => {
         return res;
       })
       .catch(() => caches.match(event.request).then((c) => c || caches.match('/')))
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = event.notification?.data?.url || '/alerts';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      for (const client of windows) {
+        if ('focus' in client) {
+          client.focus();
+          if ('navigate' in client) return client.navigate(target);
+          return Promise.resolve();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(target);
+      return Promise.resolve();
+    })
   );
 });

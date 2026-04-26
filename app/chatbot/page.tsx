@@ -66,7 +66,7 @@ export default function ChatbotPage() {
           <Bot className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-display font-bold">DanubeGuard AI</p>
+          <p className="font-display font-bold">AquaTrace AI</p>
           <p className="text-xs opacity-75">Context-aware water-quality assistant</p>
         </div>
         {isPremium && (

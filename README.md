@@ -1,4 +1,4 @@
-# 🌊 DanubeGuard OS / AquaTrace
+# 🌊 AquaTrace OS
 
 Citizen science + Copernicus satellite data + EU water-quality APIs for protecting the Danube.
 

@@ -38,7 +38,7 @@ export default function BottomNav({ variant }: { variant: Variant }) {
             <Waves className="w-5 h-5 text-white" strokeWidth={2.2} />
           </div>
           <div className="leading-tight">
-            <p className="font-display font-bold text-gray-900 dark:text-gray-100 text-base">DanubeGuard</p>
+            <p className="font-display font-bold text-gray-900 dark:text-gray-100 text-base">AquaTrace</p>
             <p className="text-[9px] text-gray-400 tracking-widest uppercase font-medium">OS · v0.1</p>
           </div>
         </div>
@@ -52,10 +52,10 @@ export default function BottomNav({ variant }: { variant: Variant }) {
                 key={href}
                 href={href}
                 className={clsx(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm font-medium',
+                  'flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium',
                   active
                     ? 'bg-dusk text-white shadow-soft'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-grass/20 dark:hover:bg-[#374151] hover:text-gray-900 dark:hover:text-gray-100'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-grass/20 dark:hover:bg-[#374151] hover:text-gray-900 dark:hover:text-gray-100 hover:translate-x-0.5'
                 )}
               >
                 <Icon className="w-4 h-4" />
@@ -75,10 +75,10 @@ export default function BottomNav({ variant }: { variant: Variant }) {
                 key={href}
                 href={href}
                 className={clsx(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm font-medium',
+                  'flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium',
                   active
                     ? 'bg-dusk text-white shadow-soft'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-grass/20 dark:hover:bg-[#374151] hover:text-gray-900 dark:hover:text-gray-100'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-grass/20 dark:hover:bg-[#374151] hover:text-gray-900 dark:hover:text-gray-100 hover:translate-x-0.5'
                 )}
               >
                 <Icon className="w-4 h-4" />
@@ -116,6 +116,7 @@ export default function BottomNav({ variant }: { variant: Variant }) {
                   aria-label={label}
                   className="w-16 h-16 rounded-2xl bg-gradient-to-br from-dusk to-dusk-dark flex items-center justify-center
                              shadow-[0_8px_20px_rgba(45,65,70,0.4)] active:scale-95 transition-all
+                             animate-[fabBreath_2.8s_ease-in-out_infinite]
                              border-4 border-white dark:border-[#1f2937]"
                 >
                   <div className="relative">

@@ -59,7 +59,7 @@ export const RO_REGIONS = [
   'Cluj', 'Timiș', 'Iași', 'Brașov', 'Sibiu', 'Other',
 ];
 
-const STORAGE_KEY = 'danubeguard_user';
+const STORAGE_KEY = 'aquatrace_user';
 
 function defaultUser(email: string, username: string): User {
   return {
