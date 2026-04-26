@@ -630,10 +630,6 @@ def predict_eta():
         return jsonify({"error": "Internal server error", "details": str(exc)}), 500
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
-
 @app.route("/api/debug/env", methods=["GET"])
 def debug_env():
     """Debug endpoint to check environment."""
@@ -647,3 +643,7 @@ def debug_env():
         ),
         200,
     )
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
