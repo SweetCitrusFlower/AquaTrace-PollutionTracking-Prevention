@@ -16,7 +16,6 @@ export async function triggerDemoAlert(): Promise<'service-worker' | 'window'> {
     icon: '/icon-192.svg',
     badge: '/icon-192.svg',
     tag: `aquatrace-demo-${Date.now()}`,
-    vibrate: [200, 120, 200],
     data: { url: '/alerts' },
   };
 
